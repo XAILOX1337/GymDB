@@ -2,12 +2,12 @@
 -- DATABASE: Sports Club Information System
 -- DBMS: Microsoft SQL Server 2019/2022
 -- ============================================================================
-IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'SportClubDB')
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'GymDB')
 BEGIN
-    CREATE DATABASE SportClubDB;
+    CREATE DATABASE GymDB;
 END
 GO
-USE SportClubDB;
+USE GymDB;
 GO
 
 -- ============================================================================
