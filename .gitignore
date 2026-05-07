@@ -2,3 +2,7 @@
 .pyc
 plan.md
 
+/venv
+/db/__pycache__
+/core/__pycache__
+/core/services/__pycache__
