@@ -1,15 +1,13 @@
-# db/connection.py
 import os
 import urllib
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
 load_dotenv()
 
-driver = os.getenv("driver", "ODBC Driver 18 for SQL Server")
-server = os.getenv("server", "localhost")
-database = os.getenv("database", "SportClubDB")
-
+driver = os.getenv("DB_DRIVER", "ODBC Driver 18 for SQL Server")
+server = os.getenv("DB_SERVER", "localhost")
+database = os.getenv("DB_NAME", "GymDB")
 
 params = urllib.parse.quote_plus(
     f"DRIVER={{{driver}}};"
@@ -19,20 +17,19 @@ params = urllib.parse.quote_plus(
     f"TrustServerCertificate=yes;"
 )
 
-engine = create_engine(
-    f"mssql+pyodbc:///?odbc_connect={params}",
-    pool_size=5,
-    max_overflow=10,
-    pool_pre_ping=True,
-    echo=False  
-)
+try:
+    engine = create_engine(
+        f"mssql+pyodbc:///?odbc_connect={params}",
+        pool_size=5,
+        max_overflow=10,
+        pool_pre_ping=True,
+        echo=False
+    )
+    # Проверка соединения при инициализации
+    with engine.connect() as conn:
+        conn.execute(text("SELECT 1"))
+except Exception as e:
+    print(f"Критическая ошибка подключения к БД: {e}")
+    engine = None
 
 __all__ = ["engine"]
-
-
-if __name__ == "__main__":
-    
-    if engine:
-        print("all ok")
-    else: 
-        print("unluck")
