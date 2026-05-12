@@ -1,40 +1,34 @@
+from sqlalchemy import text
 from db.connection import engine
 
 class ClientService:
-    def register(self, last_name, first_name, birth_date, phone, passport, employee_id):
-        
-        with engine.raw_connection() as raw_conn:
-            cursor = raw_conn.cursor()
-            
-            
-            cursor.execute("""
-                EXEC sp_RegisterClient 
-                    @LastName=?, @FirstName=?, @BirthDate=?, 
-                    @Phone=?, @PassportData=?, @EmployeeID=?
-            """, last_name, first_name, birth_date, phone, passport, employee_id)
-            
-           
-            while cursor.description is None:
-                if not cursor.nextset():
-                    break
-            
-            
-            row = cursor.fetchone()
-            client_id = row[0] if row else None
-            
-            raw_conn.commit()
-            cursor.close()
-            return client_id
+    def register_client(
+        self, last_name: str, first_name: str, middle_name: str | None,
+        birth_date: str, phone: str, email: str | None, passport: str,
+        employee_id: int
+    ) -> int | None:
+        query = text("""
+            EXEC dbo.sp_RegisterClient
+                @LastName = :ln,
+                @FirstName = :fn,
+                @MiddleName = :mn,
+                @BirthDate = :bd,
+                @Phone = :ph,
+                @Email = :em,
+                @PassportData = :ps,
+                @EmployeeID = :eid
+        """)
+        params = {
+            "ln": last_name, "fn": first_name, "mn": middle_name,
+            "bd": birth_date, "ph": phone, "em": email,
+            "ps": passport, "eid": employee_id
+        }
 
-
-# Тест на добавление клиента 
-# client = ClientService()
-# client_id = client.register(
-#     last_name="Иванов",
-#     first_name="Петр",
-#     birth_date="1999-05-15",
-#     phone="+78991459868",
-#     passport="1200 132358",
-#     employee_id=3  # ← ID администратора
-# )
-# print(client_id)
+        try:
+            with engine.begin() as conn:
+                result = conn.execute(query, params)
+                row = result.fetchone()
+                return row[0] if row else None
+        except Exception as e:
+            print(f"Ошибка при регистрации клиента: {e}")
+            raise
