@@ -6,4 +6,7 @@ plan.md
 /__pycache__
 /db/__pycache__
 /core/__pycache__
+/gui/__pycache__
 /core/services/__pycache__
+/backups
+/reports

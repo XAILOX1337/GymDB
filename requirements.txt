@@ -9,3 +9,6 @@ pytest-qt
 logging
 
 dotenv
+
+reportlab
+openpyxl
