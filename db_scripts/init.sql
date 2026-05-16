@@ -271,7 +271,8 @@ GO
 -- TRIGGERS
 -- ============================================================================
 -- Trigger: prevent employee deletion (soft delete)
-IF OBJECT_ID('trg_Employees_PreventDelete', 'TR') IS NOT NULL DROP TRIGGER trg_Employees_PreventDelete;
+IF OBJECT_ID('trg_Employees_PreventDelete', 'TR') IS NOT NULL
+    DROP TRIGGER trg_Employees_PreventDelete;
 GO
 CREATE TRIGGER trg_Employees_PreventDelete
 ON dbo.Employees
@@ -284,7 +285,8 @@ BEGIN
     WHERE e.DeletedAt IS NULL;
 
     INSERT INTO dbo.SystemLog (EmployeeID, OperationType, TableName, RecordID, Description)
-    SELECT 1, 'DELETE', 'Employees', d.EmployeeID, 'Soft delete employee: ' + d.LastName + ' ' + d.FirstName
+    SELECT d.EmployeeID, 'DELETE', 'Employees', d.EmployeeID,
+           'Soft delete employee: ' + d.LastName + ' ' + d.FirstName
     FROM deleted d;
 END
 GO
@@ -305,7 +307,8 @@ END
 GO
 
 -- Trigger: log changes in Contracts table
-IF OBJECT_ID('trg_Contracts_Audit', 'TR') IS NOT NULL DROP TRIGGER trg_Contracts_Audit;
+IF OBJECT_ID('trg_Contracts_Audit', 'TR') IS NOT NULL
+    DROP TRIGGER trg_Contracts_Audit;
 GO
 CREATE TRIGGER trg_Contracts_Audit
 ON dbo.Contracts
@@ -313,19 +316,21 @@ FOR INSERT, UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @CurrentUserID INT = 1;
 
     IF EXISTS (SELECT 1 FROM inserted) AND NOT EXISTS (SELECT 1 FROM deleted)
         INSERT INTO dbo.SystemLog (EmployeeID, OperationType, TableName, RecordID, Description)
-        SELECT @CurrentUserID, 'INSERT', 'Contracts', i.ContractID, 'New contract created' FROM inserted i;
+        SELECT i.EmployeeID, 'INSERT', 'Contracts', i.ContractID, 'New contract created'
+        FROM inserted i;
 
     IF EXISTS (SELECT 1 FROM inserted) AND EXISTS (SELECT 1 FROM deleted)
         INSERT INTO dbo.SystemLog (EmployeeID, OperationType, TableName, RecordID, Description)
-        SELECT @CurrentUserID, 'UPDATE', 'Contracts', i.ContractID, 'Contract updated' FROM inserted i;
+        SELECT i.EmployeeID, 'UPDATE', 'Contracts', i.ContractID, 'Contract updated'
+        FROM inserted i;
 
     IF EXISTS (SELECT 1 FROM deleted) AND NOT EXISTS (SELECT 1 FROM inserted)
         INSERT INTO dbo.SystemLog (EmployeeID, OperationType, TableName, RecordID, Description)
-        SELECT @CurrentUserID, 'DELETE', 'Contracts', d.ContractID, 'Contract deleted' FROM deleted d;
+        SELECT d.EmployeeID, 'DELETE', 'Contracts', d.ContractID, 'Contract deleted'
+        FROM deleted d;
 END
 GO
 
